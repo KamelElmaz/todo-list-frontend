@@ -5,6 +5,7 @@ import {AppComponent} from './app.component';
 import {TodoItemComponent} from './todo-item/todo-item.component';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {ProgressBarComponent} from './progress-bar/progress-bar.component';
+import {HttpClientModule} from "@angular/common/http";
 
 @NgModule({
   declarations: [
@@ -15,7 +16,8 @@ import {ProgressBarComponent} from './progress-bar/progress-bar.component';
     imports: [
         BrowserModule,
         FormsModule,
-      ReactiveFormsModule
+      ReactiveFormsModule,
+      HttpClientModule
     ],
   providers: [],
   bootstrap: [AppComponent]
