@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { FormControl } from '@angular/forms';
 import { Todo, TodoService } from './todo.service';
+import { FormControl } from '@angular/forms';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
@@ -14,7 +14,14 @@ import { map, startWith } from 'rxjs/operators';
       <label for="search">Search...</label>
       <input id="search" type="text" [formControl]="searchControl">
       <app-progress-bar *ngIf="loading"></app-progress-bar>
-      <app-todo-item *ngFor="let todo of filteredTodos$ | async" [item]="todo"></app-todo-item>
+      <app-todo-item
+          *ngFor="let todo of filteredTodos$ | async"
+          [item]="todo"
+          (removeTodo)="handleRemove($event)">
+      </app-todo-item>
+    </div>
+    <div class="notification" *ngIf="notification">
+      {{ notification }}
     </div>
   `,
   styleUrls: ['app.component.scss']
@@ -24,12 +31,13 @@ export class AppComponent {
   filteredTodos$: Observable<Todo[]>;
   loading: boolean = true;
   searchControl = new FormControl('');
+  notification: string | null = null;
 
   private todosSubject = new BehaviorSubject<Todo[]>([]);
 
-  constructor(todoService: TodoService) {
+  constructor(private todoService: TodoService) {
     // Fetch todos from the service
-    todoService.getAll().subscribe({
+    this.todoService.getAll().subscribe({
       next: (data) => {
         this.todos = data;
         this.todosSubject.next(data); // Populate initial data
@@ -52,10 +60,25 @@ export class AppComponent {
               : todos;
         })
     );
+  }
 
-    // React to search field changes
-    this.searchControl.valueChanges
-        .pipe(startWith('')) // Ensure the list is displayed initially
-        .subscribe(() => this.todosSubject.next(this.todos));
+  handleRemove(todoId: number) {
+    this.todoService.remove(todoId).subscribe({
+      next: () => {
+        this.todos = this.todos.filter((todo) => todo.id !== todoId);
+        this.todosSubject.next(this.todos);
+        this.showNotification('TODO removed successfully!');
+      },
+      error: () => {
+        this.showNotification('Failed to remove TODO. Please try again.');
+      }
+    });
+  }
+
+  private showNotification(message: string) {
+    this.notification = message;
+    setTimeout(() => {
+      this.notification = null;
+    }, 3000);
   }
 }
